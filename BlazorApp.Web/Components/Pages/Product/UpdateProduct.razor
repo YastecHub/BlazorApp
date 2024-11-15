@@ -1,0 +1,34 @@
+﻿@page "/product/update/{ID:int}"
+<h3>UpdateProduct</h3>
+
+<EditForm OnValidSubmit="Submit" Model="Model">
+    <div class="container">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label>Product Name</label>
+                <InputText class="form-control" @bind-Value="Model.ProductName" />
+                <ValidationMessage For="@(() => Model.ProductName)" />
+            </div>
+            <div class="col-md-6">
+                <label>Quantity</label>
+                <InputNumber class="form-control" @bind-Value="Model.Quantity" />
+                <ValidationMessage For="@(() => Model.Quantity)" />
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label>Price</label>
+                <InputNumber class="form-control" @bind-Value="Model.Price" />
+                <ValidationMessage For="@(() => Model.Price)" />
+            </div>
+            <div class="col-md-6">
+                <label>Description</label>
+                <InputText class="form-control" @bind-Value="Model.Description" />
+                <ValidationMessage For="@(() => Model.Description)" />
+            </div>
+        </div>
+
+        <button class="btn btn-secondary" type="submit">Save</button>
+    </div>
+</EditForm>

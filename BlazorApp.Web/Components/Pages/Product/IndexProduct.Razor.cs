@@ -1,0 +1,46 @@
+﻿using BlazorApp.Models.Entities;
+using BlazorApp.Models.Models;
+using BlazorApp.Web.Components.BaseComponents;
+using Blazored.Toast.Services;
+using Microsoft.AspNetCore.Components;
+using Newtonsoft.Json;
+using System.Text.Json.Serialization;
+
+namespace BlazorApp.Web.Components.Pages.Product
+{
+    public partial class IndexProduct
+    {
+        [Inject]
+        public ApiClient ApiClient { get; set; }
+        public List<ProductModel> ProductModels { get; set; }
+        public AppModal Modal { get; set; }
+        public int DeleteID { get; set; }
+        private IToastService ToastService { get; set; }
+
+        protected override async Task OnInitializedAsync()
+        {
+            await base.OnInitializedAsync();
+            await LoadProduct();
+        }
+
+        protected async Task LoadProduct()
+        {
+            var res = await ApiClient.GetFromJsonAsync<BaseResponseModel>("/api/product");
+
+            if (res != null && res.Success)
+            {
+                ProductModels = JsonConvert.DeserializeObject<List<ProductModel>>(res.Data.ToString());
+            }
+        }
+        protected async Task HandleDelte()
+        {
+            var res = await ApiClient.DeleteAsync<BaseResponseModel>($"/api/Product/{DeleteID}");
+            if (res != null && res.Success)
+            {
+                ToastService.ShowSuccess("Delete product successfully");
+            }
+            await LoadProduct();
+            Modal.Close();
+        }
+    }
+}
