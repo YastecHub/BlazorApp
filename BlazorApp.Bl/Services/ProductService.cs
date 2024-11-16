@@ -37,5 +37,10 @@ namespace BlazorApp.Bl.Services
         {
            return _productRepository.UpdateProduct(productModel);
         }
+
+        public Task DeleteProduct(int id)
+        {
+            return _productRepository.DeleteProduct(id);
+        }
     }
 }

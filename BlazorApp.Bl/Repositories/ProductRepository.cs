@@ -42,5 +42,12 @@ namespace BlazorApp.Bl.Repositories
           _dbContext.Entry(productModel).State = EntityState.Modified;
             await _dbContext.SaveChangesAsync();
         }
+
+        public async Task DeleteProduct(int id)
+        {
+            var product = _dbContext.Products.FirstOrDefault(n => n.ID == id);
+            _dbContext.Products.Remove(product);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

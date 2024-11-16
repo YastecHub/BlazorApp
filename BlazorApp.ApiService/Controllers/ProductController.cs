@@ -79,7 +79,19 @@ namespace BlazorApp.ApiService.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
-
+            if(!await _productService.ProductModelExists(id))
+            {
+                return Ok(new BaseResponseModel
+                {
+                    Success = false,
+                    ErrorMessage = "Not Found"
+                });
+            }
+            await _productService.DeleteProduct(id);
+            return Ok(new BaseResponseModel
+            {
+                Success = true
+            });
         }
     }
 }

@@ -14,5 +14,6 @@ namespace BlazorApp.Bl.Interfaces.IServices
         Task<ProductModel> GetProduct(int id);
         Task<bool> ProductModelExists(int id);
         Task UpdateProduct(ProductModel productModel);
+        Task DeleteProduct(int id);
     }
 }

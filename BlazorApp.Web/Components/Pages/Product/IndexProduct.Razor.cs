@@ -15,6 +15,7 @@ namespace BlazorApp.Web.Components.Pages.Product
         public List<ProductModel> ProductModels { get; set; }
         public AppModal Modal { get; set; }
         public int DeleteID { get; set; }
+        [Inject]
         private IToastService ToastService { get; set; }
 
         protected override async Task OnInitializedAsync()
@@ -32,7 +33,7 @@ namespace BlazorApp.Web.Components.Pages.Product
                 ProductModels = JsonConvert.DeserializeObject<List<ProductModel>>(res.Data.ToString());
             }
         }
-        protected async Task HandleDelte()
+        protected async Task HandleDelete()
         {
             var res = await ApiClient.DeleteAsync<BaseResponseModel>($"/api/Product/{DeleteID}");
             if (res != null && res.Success)
