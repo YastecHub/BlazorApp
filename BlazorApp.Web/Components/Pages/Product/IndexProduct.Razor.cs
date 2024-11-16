@@ -4,7 +4,6 @@ using BlazorApp.Web.Components.BaseComponents;
 using Blazored.Toast.Services;
 using Microsoft.AspNetCore.Components;
 using Newtonsoft.Json;
-using System.Text.Json.Serialization;
 
 namespace BlazorApp.Web.Components.Pages.Product
 {
