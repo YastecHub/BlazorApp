@@ -14,7 +14,7 @@ namespace BlazorApp.ApiService.Controllers
         [HttpPost("Login")]
         public ActionResult<LoginResponseModel> Login([FromBody] LoginModel loginModel)
         {
-            if (loginModel.UserName == "Admin" && loginModel.Password == "Admin")
+            if ((loginModel.UserName == "Admin" && loginModel.Password == "Admin") || (loginModel.UserName == "User" && loginModel.Password == "User"))
             {
                 var token = GenerateJwtToken(loginModel.UserName);
                 return Ok(new LoginResponseModel
@@ -30,7 +30,7 @@ namespace BlazorApp.ApiService.Controllers
             var claims = new[]
             {
             new Claim(ClaimTypes.Name, userName),
-            new Claim(ClaimTypes.Role, "Admin")
+            new Claim(ClaimTypes.Role, userName == "Admin" ? "Admin" : "User")
         };
             string secret = configuration.GetValue<string>("Jwt:Secret");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
