@@ -28,6 +28,53 @@ namespace BlazorApp.ApiService.Controllers
             return null;
         }
 
+        [HttpGet("logingByRefreshToken")]
+        public ActionResult<LoginResponseModel> LoginByRefreshToken(string refreshToken)
+        {
+            var secret = configuration.GetValue<string>("jwt:RefreshTokenSecret");
+            var claimsPrincipal = GetClaimsPrincipalFromToken(refreshToken, secret);
+            if(claimsPrincipal != null)
+            {
+                return new StatusCodeResult(StatusCodes.Status401Unauthorized);
+            }
+            var userName = claimsPrincipal.FindFirstValue(ClaimTypes.Name);
+            //Call to Db to check user valid
+
+            var newToken = GenerateJwtToken(userName, isRefreshToken: false);
+            var newRefreshToken = GenerateJwtToken(userName, isRefreshToken:true);
+            return new LoginResponseModel
+            {
+                Token = newToken,
+                TokenExpired = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
+                RefreshToken = newRefreshToken
+            };
+
+        }
+
+        private ClaimsPrincipal GetClaimsPrincipalFromToken(string token, string secret)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(secret);
+            try
+            {
+                var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateAudience = true,
+                    ValidAudience = "yastec",
+                    ValidateIssuer = true,
+                    ValidIssuer = "yastec",
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                }, out var validatedToken);
+                return principal;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private string GenerateJwtToken(string userName, bool isRefreshToken)
         {
             var claims = new[]

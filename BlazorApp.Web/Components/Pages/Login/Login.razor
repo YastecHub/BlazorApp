@@ -33,7 +33,7 @@
         if(res != null && res.Token != null)
         {
             //Use CustomAuthStateProvider
-            await ((CustomAuthStateProvider)AuthStateProvider).MarkUserAuthenticated(res.Token);
+            await ((CustomAuthStateProvider)AuthStateProvider).MarkUserAuthenticated(res);
             Navigation.NavigateTo("/");
         }
     }

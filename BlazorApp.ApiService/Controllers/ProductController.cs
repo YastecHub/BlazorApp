@@ -18,7 +18,7 @@ namespace BlazorApp.ApiService.Controllers
             _productService = productService;
         }
         [HttpGet]
-        public async Task<ActionResult<BaseResponseModel>> GetProduct()
+        public async Task<ActionResult<BaseResponseModel>> GetProducts()
         {
             var products = await _productService.GetProducts();
             return Ok(new BaseResponseModel
