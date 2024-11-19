@@ -47,6 +47,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Configure JWT authentication.
 var secret = builder.Configuration.GetValue<string>("jwt:Secret") ?? throw new Exception("JWT Secret is missing.");

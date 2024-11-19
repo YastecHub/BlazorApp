@@ -1,4 +1,6 @@
-﻿using BlazorApp.Models.Models;
+﻿using BlazorApp.Bl.Interfaces.IServices;
+using BlazorApp.Models.Entities;
+using BlazorApp.Models.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,15 +11,23 @@ namespace BlazorApp.ApiService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(IConfiguration configuration) : ControllerBase
+    public class AuthController(IConfiguration configuration, IAuthService authService) : ControllerBase
     {
         [HttpPost("Login")]
-        public ActionResult<LoginResponseModel> Login([FromBody] LoginModel loginModel)
+        public async Task<ActionResult<LoginResponseModel>> Login([FromBody] LoginModel loginModel)
         {
-            if ((loginModel.UserName == "Admin" && loginModel.Password == "Admin") || (loginModel.UserName == "User" && loginModel.Password == "User"))
+            var user = await authService.GetUserByLogin(loginModel.UserName, loginModel.Password);
+            if (user != null)
             {
-                var token = GenerateJwtToken(loginModel.UserName, isRefreshToken: false);
-                var refreshToken = GenerateJwtToken(loginModel.UserName, isRefreshToken: true);
+                var token = GenerateJwtToken(user, isRefreshToken: false);
+                var refreshToken = GenerateJwtToken(user, isRefreshToken: true);
+
+                await authService.AddRefreshTokenModel(new RefreshTokenModel
+                {
+                    RefreshToken = refreshToken,
+                    UserID = user.ID
+                });
+
                 return Ok(new LoginResponseModel
                 {
                     Token = token,
@@ -29,67 +39,44 @@ namespace BlazorApp.ApiService.Controllers
         }
 
         [HttpGet("logingByRefreshToken")]
-        public ActionResult<LoginResponseModel> LoginByRefreshToken(string refreshToken)
+        public async Task <ActionResult<LoginResponseModel>> LoginByRefreshToken(string refreshToken)
         {
-            var secret = configuration.GetValue<string>("jwt:RefreshTokenSecret");
-            var claimsPrincipal = GetClaimsPrincipalFromToken(refreshToken, secret);
-            if(claimsPrincipal != null)
+            var refreshTokenModel = await authService.GetRefreshTokenModel(refreshToken);
+            if (refreshTokenModel == null)
             {
-                return new StatusCodeResult(StatusCodes.Status401Unauthorized);
+                return StatusCode(StatusCodes.Status400BadRequest);
             }
-            var userName = claimsPrincipal.FindFirstValue(ClaimTypes.Name);
-            //Call to Db to check user valid
+            var newToken = GenerateJwtToken(refreshTokenModel.User, isRefreshToken: false);
+            var newRefreshToken = GenerateJwtToken(refreshTokenModel.User, isRefreshToken: true);
 
-            var newToken = GenerateJwtToken(userName, isRefreshToken: false);
-            var newRefreshToken = GenerateJwtToken(userName, isRefreshToken:true);
+            await authService.AddRefreshTokenModel(new RefreshTokenModel
+            {
+                RefreshToken =newRefreshToken,
+                UserID = refreshTokenModel.UserID,
+            });
             return new LoginResponseModel
             {
                 Token = newToken,
                 TokenExpired = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
                 RefreshToken = newRefreshToken
             };
-
         }
 
-        private ClaimsPrincipal GetClaimsPrincipalFromToken(string token, string secret)
+        private string GenerateJwtToken(UserModel user, bool isRefreshToken)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(secret);
-            try
+            var claims = new List<Claim>()
             {
-                var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateAudience = true,
-                    ValidAudience = "yastec",
-                    ValidateIssuer = true,
-                    ValidIssuer = "yastec",
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                }, out var validatedToken);
-                return principal;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private string GenerateJwtToken(string userName, bool isRefreshToken)
-        {
-            var claims = new[]
-            {
-            new Claim(ClaimTypes.Name, userName),
-            new Claim(ClaimTypes.Role, userName == "Admin" ? "Admin" : "User")
-        };
+                new Claim(ClaimTypes.Name, user.UserName),
+            };
+            claims.AddRange(user.UserRoles.Select(n => new Claim(ClaimTypes.Role, n.Role.RoleName)));
             string secret = configuration.GetValue<string>($"Jwt:{(isRefreshToken ? "RefreshTokenSecret" : "Secret")}");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer:  "yasirola",
+                issuer: "yasirola",
                 audience: "yasirola",
-                claims : claims,
+                claims: claims,
                 expires: DateTime.UtcNow.AddHours(isRefreshToken ? 24 : 1),
                 signingCredentials: creds
                 );
