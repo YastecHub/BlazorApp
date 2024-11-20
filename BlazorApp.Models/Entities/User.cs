@@ -7,6 +7,7 @@ namespace BlazorApp.Models.Entities
     {
         public string FirstName { get; set; }
         public string Surname { get; set; }
+        public List<string> Roles { get; set; } = new List<string>();
         public ICollection<RefreshTokenModel> RefreshTokens { get; set; } = new List<RefreshTokenModel>();
     }
 }
