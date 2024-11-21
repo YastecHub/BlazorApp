@@ -1,6 +1,7 @@
 ﻿using BlazorApp.Bl.Interfaces.IServices;
 using BlazorApp.Models.Entities;
 using BlazorApp.Models.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -11,7 +12,7 @@ namespace BlazorApp.ApiService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(IConfiguration configuration, IAuthService authService) : ControllerBase
+    public class AuthController(IConfiguration configuration, IAuthService authService, UserManager<User> _userManager) : ControllerBase
     {
         [HttpPost("Login")]
         public async Task<ActionResult<LoginResponseModel>> Login([FromBody] LoginModel loginModel)
@@ -19,8 +20,8 @@ namespace BlazorApp.ApiService.Controllers
             var user = await authService.GetUserByLogin(loginModel.UserName, loginModel.Password);
             if (user != null)
             {
-                var token = GenerateJwtToken(user, isRefreshToken: false);
-                var refreshToken = GenerateJwtToken(user, isRefreshToken: true);
+                var token = await GenerateJwtToken(user, isRefreshToken: false);
+                var refreshToken = await GenerateJwtToken(user, isRefreshToken: true);
 
                 await authService.AddRefreshTokenModel(new RefreshTokenModel
                 {
@@ -50,8 +51,8 @@ namespace BlazorApp.ApiService.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest);
             }
 
-            var newToken = GenerateJwtToken(refreshTokenModel.User, isRefreshToken: false);
-            var newRefreshToken = GenerateJwtToken(refreshTokenModel.User, isRefreshToken: true);
+            var newToken = await GenerateJwtToken(refreshTokenModel.User, isRefreshToken: false);
+            var newRefreshToken = await GenerateJwtToken(refreshTokenModel.User, isRefreshToken: true);
 
             await authService.AddRefreshTokenModel(new RefreshTokenModel
             {
@@ -66,7 +67,7 @@ namespace BlazorApp.ApiService.Controllers
             };
         }
 
-        private string GenerateJwtToken(User user, bool isRefreshToken)
+        private async Task<string> GenerateJwtToken(User user, bool isRefreshToken)
         {
             var claims = new List<Claim>()
             {
@@ -74,9 +75,11 @@ namespace BlazorApp.ApiService.Controllers
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             };
 
-            if (user.Roles != null && user.Roles.Any())
+            var userRoles = await _userManager.GetRolesAsync(user);
+
+            if (userRoles.Any())
             {
-                claims.AddRange(user.Roles.Select(role => new Claim(ClaimTypes.Role, role)));
+                claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
             }
 
             

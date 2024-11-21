@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BlazorApp.Database.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class IUpdatess : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -184,7 +184,8 @@ namespace BlazorApp.Database.Migrations
                     ID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     RefreshToken = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserRoles = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -202,8 +203,8 @@ namespace BlazorApp.Database.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { "561a669e-48e9-4100-ab22-d2dca2777864", null, "Admin", null },
-                    { "dbd39d7d-60dc-47be-a34d-f0d43a3bb1f6", null, "User", null }
+                    { "8dbe50ca-23e8-4351-916d-8b20f8231613", null, "User", null },
+                    { "f1a26650-f9ff-4abd-a0ce-048d1323ef4b", null, "Admin", null }
                 });
 
             migrationBuilder.CreateIndex(

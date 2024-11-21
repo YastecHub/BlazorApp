@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlazorApp.Database.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241120215703_Initial")]
-    partial class Initial
+    [Migration("20241120235524_IUpdatess")]
+    partial class IUpdatess
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -70,6 +70,10 @@ namespace BlazorApp.Database.Migrations
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.PrimitiveCollection<string>("UserRoles")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ID");
 
@@ -180,12 +184,12 @@ namespace BlazorApp.Database.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "561a669e-48e9-4100-ab22-d2dca2777864",
+                            Id = "f1a26650-f9ff-4abd-a0ce-048d1323ef4b",
                             Name = "Admin"
                         },
                         new
                         {
-                            Id = "dbd39d7d-60dc-47be-a34d-f0d43a3bb1f6",
+                            Id = "8dbe50ca-23e8-4351-916d-8b20f8231613",
                             Name = "User"
                         });
                 });

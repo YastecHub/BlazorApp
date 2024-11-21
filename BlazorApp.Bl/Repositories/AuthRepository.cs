@@ -10,9 +10,9 @@ namespace BlazorApp.Bl.Repositories
     {
         private readonly UserManager<User> _userManager;
         private readonly AppDbContext _dbContext;
-        private readonly RoleManager<User> _roleManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public AuthRepository(UserManager<User> userManager, AppDbContext dbContext, RoleManager<User> roleManager)
+        public AuthRepository(UserManager<User> userManager, AppDbContext dbContext, RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
             _dbContext = dbContext;
@@ -34,7 +34,7 @@ namespace BlazorApp.Bl.Repositories
             {
                 var userRoles = await _userManager.GetRolesAsync(refreshTokenModel.User);
 
-                refreshTokenModel.User.Roles = userRoles.ToList();
+                refreshTokenModel.UserRoles = userRoles.ToList();
             }
             return refreshTokenModel;
         }
