@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BlazorApp.ApiService.Controllers
 {
-    [Authorize(Roles = "Admin, User")]
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ProductController : ControllerBase
@@ -17,8 +17,8 @@ namespace BlazorApp.ApiService.Controllers
         {
             _productService = productService;
         }
-        [HttpGet]
-        public async Task<ActionResult<BaseResponseModel>> GetProducts()
+        [HttpGet("get-all-products")]
+        public async Task<ActionResult<BaseResponseModel>> GetAllProducts()
         {
             var products = await _productService.GetProducts();
             return Ok(new BaseResponseModel
@@ -28,7 +28,7 @@ namespace BlazorApp.ApiService.Controllers
             });
         }
 
-        [HttpPost]
+        [HttpPost("create-new-product")]
         public async Task<ActionResult<ProductModel>> CreateProduct(ProductModel productModel)
         {
             await _productService.CreateProduct(productModel);
@@ -38,7 +38,7 @@ namespace BlazorApp.ApiService.Controllers
             });
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("get-product/{id}")]
         public async Task<ActionResult<BaseResponseModel>> GetProduct(int id)
         {
             var productModel = await _productService.GetProduct(id);
@@ -59,7 +59,7 @@ namespace BlazorApp.ApiService.Controllers
             });
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("update-product/{id}")]
         public async Task<ActionResult> UpdateProduct(int id, ProductModel productModel)
         {
             if (id != productModel.ID || !await _productService.ProductModelExists(id))
@@ -77,7 +77,7 @@ namespace BlazorApp.ApiService.Controllers
             });
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("delete-product/{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
             if(!await _productService.ProductModelExists(id))

@@ -12,18 +12,28 @@ namespace BlazorApp.ApiService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(IConfiguration configuration, IAuthService authService, UserManager<User> _userManager) : ControllerBase
+    public class AuthController: ControllerBase
     {
+        private readonly IConfiguration _configuration;
+        private readonly IAuthService _authService;
+        private readonly UserManager<User> _userManager;
+
+        public AuthController(IConfiguration configuration, IAuthService authService, UserManager<User> userManager)
+        {
+            _configuration = configuration;
+            _authService = authService;
+            _userManager = userManager;
+        }
         [HttpPost("Login")]
         public async Task<ActionResult<LoginResponseModel>> Login([FromBody] LoginModel loginModel)
         {
-            var user = await authService.GetUserByLogin(loginModel.UserName, loginModel.Password);
+            var user = await _authService.GetUserByLogin(loginModel.UserName, loginModel.Password);
             if (user != null)
             {
                 var token = await GenerateJwtToken(user, isRefreshToken: false);
                 var refreshToken = await GenerateJwtToken(user, isRefreshToken: true);
 
-                await authService.AddRefreshTokenModel(new RefreshTokenModel
+                await _authService.AddRefreshTokenModel(new RefreshTokenModel
                 {
                     RefreshToken = refreshToken,
                     UserId = user.Id,
@@ -42,10 +52,10 @@ namespace BlazorApp.ApiService.Controllers
             });
         }
 
-        [HttpGet("logingByRefreshToken")]
+        [HttpGet("loging-By-RefreshToken")]
         public async Task<ActionResult<LoginResponseModel>> LoginByRefreshToken(string refreshToken)
         {
-            var refreshTokenModel = await authService.GetRefreshTokenModel(refreshToken);
+            var refreshTokenModel = await _authService.GetRefreshTokenModel(refreshToken);
             if (refreshTokenModel?.User == null)
             {
                 return StatusCode(StatusCodes.Status400BadRequest);
@@ -54,7 +64,7 @@ namespace BlazorApp.ApiService.Controllers
             var newToken = await GenerateJwtToken(refreshTokenModel.User, isRefreshToken: false);
             var newRefreshToken = await GenerateJwtToken(refreshTokenModel.User, isRefreshToken: true);
 
-            await authService.AddRefreshTokenModel(new RefreshTokenModel
+            await _authService.AddRefreshTokenModel(new RefreshTokenModel
             {
                 RefreshToken = newRefreshToken,
                 UserId = refreshTokenModel.UserId,
@@ -63,7 +73,7 @@ namespace BlazorApp.ApiService.Controllers
             {
                 Token = newToken,
                 RefreshToken = newRefreshToken,
-                TokenExpired = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds()
+                TokenExpired = DateTimeOffset.Now.AddHours(1).ToUnixTimeSeconds()
             };
         }
 
@@ -82,8 +92,7 @@ namespace BlazorApp.ApiService.Controllers
                 claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
             }
 
-            
-            string secret = configuration.GetValue<string>($"Jwt:{(isRefreshToken ? "RefreshTokenSecret" : "Secret")}");
+            string secret = _configuration.GetValue<string>($"Jwt:{(isRefreshToken ? "RefreshTokenSecret" : "Secret")}");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -91,7 +100,7 @@ namespace BlazorApp.ApiService.Controllers
                 issuer: "yasirola",
                 audience: "yasirola",
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(isRefreshToken ? 24 : 1),
+                expires: DateTime.Now.AddHours(isRefreshToken ? 24 : 1),
                 signingCredentials: creds
                 );
             return new JwtSecurityTokenHandler().WriteToken(token);

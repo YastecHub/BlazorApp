@@ -20,7 +20,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    c.AddSecurityDefinition("Bearer ", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
         Description = "Please insert Jwt Token with Bearer into field",
@@ -44,7 +44,9 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // Add Identity services
-builder.Services.AddIdentity<User, IdentityRole>()
+builder.Services.AddAuthorization()
+    .AddIdentityApiEndpoints<User>()
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
@@ -71,22 +73,32 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
 
 // Configure JWT authentication
-var secret = builder.Configuration.GetValue<string>("jwt:Secret") ?? throw new Exception("JWT Secret is missing.");
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+var jwtSecret = builder.Configuration["Jwt:Secret"];
+if (string.IsNullOrEmpty(jwtSecret))
 {
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = "yasirola",
-        ValidAudience = "yasirola",
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret))
-    };
-});
+    throw new InvalidOperationException("JWT Secret is not configured.");
+}
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthentication(auth =>
+{
+    auth.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    auth.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+    
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = "yasirola",
+            ValidAudience = "yasirola",
+            RequireExpirationTime = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+        };
+    });
+
 
 // Optional: Add ProblemDetails
 builder.Services.AddProblemDetails();
@@ -100,7 +112,7 @@ using (var scope = app.Services.CreateScope())
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
     // Seed roles and admin user
-    await DbSeeder.SeedAdminUser(userManager, roleManager);
+    //await DbSeeder.SeedAdminUser(userManager, roleManager);
 }
 
 // Configure the HTTP request pipeline.
