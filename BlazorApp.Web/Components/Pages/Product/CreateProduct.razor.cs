@@ -17,7 +17,7 @@ namespace BlazorApp.Web.Components.Pages.Product
 
         public async Task Submit()
         {
-            var res = await ApiClient.PostAsync<BaseResponseModel, ProductModel>("/api/product", Model);
+            var res = await ApiClient.PostAsync<BaseResponseModel, ProductModel>("/api/Product/create-new-product", Model);
 
             if (res != null && res.Success)
             {

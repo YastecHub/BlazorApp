@@ -21,7 +21,7 @@ public class ApiClient(HttpClient httpClient, ProtectedLocalStorage localStorage
             }
             else if (sessionState.TokenExpired < DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds())
             {
-                var res = await httpClient.GetFromJsonAsync<LoginResponseModel>($"/api/auth/LogingByRefreshToken?refreshToken={sessionState.RefreshToken}");
+                var res = await httpClient.GetFromJsonAsync<LoginResponseModel>($"/api/auth/loging-By-RefreshToken?refreshToken={sessionState.RefreshToken}");
                 if (res != null)
                 {
                     await ((CustomAuthStateProvider)authStateProvider).MarkUserAuthenticated(res);

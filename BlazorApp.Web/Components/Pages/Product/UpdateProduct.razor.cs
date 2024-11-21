@@ -22,7 +22,7 @@ namespace BlazorApp.Web.Components.Pages.Product
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
-            var res = await ApiClient.GetFromJsonAsync<BaseResponseModel>($"/api/Product/{ID}");
+            var res = await ApiClient.GetFromJsonAsync<BaseResponseModel>($"/api/Product/get-product/{ID}");
 
             if (res != null && res.Success)
             {
@@ -32,7 +32,7 @@ namespace BlazorApp.Web.Components.Pages.Product
 
         public async Task Submit()
         {
-            var res = await ApiClient.PutAsync<BaseResponseModel, ProductModel>($"/api/Product/{ID}", Model);
+            var res = await ApiClient.PutAsync<BaseResponseModel, ProductModel>($"/api/Product/update-product/{ID}", Model);
 
             if (res != null && res.Success)
             {

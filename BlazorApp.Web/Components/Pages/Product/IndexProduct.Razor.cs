@@ -25,7 +25,7 @@ namespace BlazorApp.Web.Components.Pages.Product
 
         protected async Task LoadProduct()
         {
-            var res = await ApiClient.GetFromJsonAsync<BaseResponseModel>("/api/product");
+            var res = await ApiClient.GetFromJsonAsync<BaseResponseModel>("/api/Product/get-all-products");
 
             if (res != null && res.Success)
             {
@@ -34,7 +34,7 @@ namespace BlazorApp.Web.Components.Pages.Product
         }
         protected async Task HandleDelete()
         {
-            var res = await ApiClient.DeleteAsync<BaseResponseModel>($"/api/Product/{DeleteID}");
+            var res = await ApiClient.DeleteAsync<BaseResponseModel>($"/api/Product/delete-product/{DeleteID}");
             if (res != null && res.Success)
             {
                 ToastService.ShowSuccess("Delete product successfully");
